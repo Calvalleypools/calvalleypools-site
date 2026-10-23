@@ -1,0 +1,9 @@
+/services/weekly-pool-service/ /services/regular-pool-maintenance/ 301
+/services/pool-equipment-repair/ /services/pool-repair/ 301
+/services/bead-blasting/ /services/pool-tile-cleaning/ 301
+/services/green-to-clean/ /services/green-pool-cleanup/ 301
+/blog/winterizing-your-pool-tips-for/ /blog/ 301
+/blog/winterizing-your-pool-tips-for /blog/ 301
+http://www.calvalleypools.com/* https://calvalleypools.com/:splat 301!
+https://www.calvalleypools.com/* https://calvalleypools.com/:splat 301!
+/* /404/index.html 404
