@@ -2,7 +2,7 @@
 
 .service img[src$="repair.jpg"],.service-hero img[src$="repair.jpg"]{object-fit:contain;background:#e7eeeb}.hero-photo img{object-position:center 65%}
 /* Preserve the original logo artwork and blend its white backdrop into the page. */
-header .brand{flex-shrink:0}header .brand img{width:220px;height:auto;display:block;mix-blend-mode:multiply}header .brand>span{display:none}header{gap:28px;padding-top:12px;padding-bottom:12px}@media(max-width:1100px){header .brand img{width:185px}nav{gap:10px}}@media(max-width:760px){header .brand img{width:175px;height:auto}header .brand>span{display:none}header{padding-top:10px;padding-bottom:10px}}
+header .brand{flex-shrink:0}header .brand img{width:220px;height:auto;display:block}header .brand>span{display:none}header{gap:28px;padding-top:12px;padding-bottom:12px}@media(max-width:1100px){header .brand img{width:185px}nav{gap:10px}}@media(max-width:760px){header .brand img{width:175px;height:auto}header .brand>span{display:none}header{padding-top:10px;padding-bottom:10px}}
 
 header{position:relative;padding-top:25px}.header-location{position:absolute;right:5%;top:8px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal)}@media(max-width:760px){header{padding-top:28px}.header-location{top:7px;font-size:10px}}
 
