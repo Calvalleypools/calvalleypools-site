@@ -7,6 +7,8 @@
 /services/green-to-clean/ /services/green-pool-cleanup/ 301
 /blog/winterizing-your-pool-tips-for/ /blog/ 301
 /blog/winterizing-your-pool-tips-for /blog/ 301
+/services/chemical-treatment/ /services/regular-pool-maintenance/ 301
+/services/chemical-treatment /services/regular-pool-maintenance/ 301
 
 # Canonical origin is https://calvalleypools.com/ (non-www HTTPS).
 # With force HTTPS, Netlify upgrades HTTP to HTTPS on the SAME host before
