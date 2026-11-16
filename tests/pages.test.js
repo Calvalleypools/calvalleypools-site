@@ -76,6 +76,18 @@ test("quiz pages are noindex and not linked from the site", function () {
   });
   assert.equal(read("quote/index.html").includes("data-quiz-conversion"), false);
   assert.match(read("thanks-in-green/index.html"), /data-quiz-conversion="true"/);
+  var conversionPages = {
+    "thanks-in-green/index.html": true,
+    "thanks-in-cloudy/index.html": true,
+    "thanks-in-clear/index.html": true,
+    "thanks-services/index.html": true,
+    "thanks-out/index.html": true
+  };
+  htmlFiles.forEach(function (file) {
+    var rel = path.relative(root, file);
+    var has = fs.readFileSync(file, "utf8").includes('data-quiz-conversion="true"');
+    assert.equal(has, !!conversionPages[rel], rel);
+  });
 });
 
 test("existing homepage copy is unchanged aside from files we meant to add", function () {

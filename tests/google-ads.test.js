@@ -4,10 +4,19 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
-function fakeWindow(conversion) {
+function memoryStorage(initial) {
+  var data = Object.assign({}, initial || {});
+  return {
+    getItem: function (key) { return Object.prototype.hasOwnProperty.call(data, key) ? data[key] : null; },
+    setItem: function (key, value) { data[key] = String(value); }
+  };
+}
+
+function fakeWindow(conversion, storage) {
   var scripts = [];
   var win = {
     __scripts: scripts,
+    sessionStorage: storage || memoryStorage(),
     document: {
       head: {
         appendChild: function (node) { scripts.push(node); }
@@ -35,13 +44,16 @@ function loadAds() {
   return sandbox;
 }
 
-test("placeholders do not load gtag or contact Google", function () {
+test("the live ids load the base tag and do not convert a normal page", function () {
   var sandbox = loadAds();
-  assert.equal(sandbox.GOOGLE_ADS_ID, "AW-XXXXXXXXX");
-  assert.equal(sandbox.QUIZ_CONVERSION_LABEL, "PASTE_QUIZ_CONVERSION_LABEL");
-  assert.equal(sandbox.isGoogleAdsConfigured(sandbox.GOOGLE_ADS_ID, sandbox.QUIZ_CONVERSION_LABEL), false);
-  assert.equal(sandbox.window.__scripts.length, 0);
-  assert.equal(sandbox.window.dataLayer, undefined);
+  assert.equal(sandbox.GOOGLE_ADS_ID, "AW-18485766053");
+  assert.equal(sandbox.QUIZ_CONVERSION_LABEL, "ch54CI7HnLkdEKXP2e5E");
+  assert.equal(sandbox.window.__scripts.length, 1);
+  assert.equal(sandbox.window.__scripts[0].async, true);
+  assert.equal(sandbox.window.__scripts[0].src, "https://www.googletagmanager.com/gtag/js?id=AW-18485766053");
+  var events = [];
+  sandbox.window.dataLayer.forEach(function (args) { events.push(args[0]); });
+  assert.deepEqual(events, ["js", "config"]);
 });
 
 test("a real id and label load async gtag and fire one conversion on thank-you pages", function () {
@@ -57,12 +69,19 @@ test("a real id and label load async gtag and fire one conversion on thank-you p
   assert.equal(plain.dataLayer[1][1], "AW-1234567890");
 
   var thanks = fakeWindow(true);
-  sandbox.installGoogleAds(thanks, "AW-1234567890", "AbCdEf1234");
+  sandbox.installGoogleAds(thanks, "AW-18485766053", "ch54CI7HnLkdEKXP2e5E");
   assert.equal(thanks.dataLayer[2][0], "event");
   assert.equal(thanks.dataLayer[2][1], "conversion");
-  assert.equal(thanks.dataLayer[2][2].send_to, "AW-1234567890/AbCdEf1234");
-  sandbox.installGoogleAds(thanks, "AW-1234567890", "AbCdEf1234");
+  assert.equal(thanks.dataLayer[2][2].send_to, "AW-18485766053/ch54CI7HnLkdEKXP2e5E");
+  assert.equal(thanks.dataLayer.filter(function (args) { return args[0] === "event"; }).length, 1);
+  sandbox.installGoogleAds(thanks, "AW-18485766053", "ch54CI7HnLkdEKXP2e5E");
   assert.equal(thanks.__scripts.length, 1);
+
+  var refresh = fakeWindow(true, thanks.sessionStorage);
+  sandbox.installGoogleAds(refresh, "AW-18485766053", "ch54CI7HnLkdEKXP2e5E");
+  var refreshEvents = [];
+  refresh.dataLayer.forEach(function (args) { refreshEvents.push(args[0]); });
+  assert.deepEqual(refreshEvents, ["js", "config"]);
 });
 
 test("either placeholder blocks the tag", function () {

@@ -2,21 +2,33 @@ document.querySelector('.menu').addEventListener('click',function(){let open=thi
 const currentPath=location.pathname;document.querySelectorAll('header nav a').forEach(a=>{const h=a.getAttribute('href');if(h===currentPath||(h.length>1&&h.startsWith('/')&&currentPath.startsWith(h)))a.setAttribute('aria-current','page')});
 
 /* google-ads-start
- * Paste the two Google Ads values below. This is the only place they go.
- * GOOGLE_ADS_ID looks like AW-1234567890 (the AW- account id).
- * QUIZ_CONVERSION_LABEL is the label after the slash in the conversion
- * send_to value. If Google shows AW-1234567890/AbCdEfGhIj, the label is AbCdEfGhIj.
- * Leave both placeholders until you have the real values. While either one
- * is still a placeholder, gtag.js is not loaded and nothing contacts Google.
+ * The only place the Google Ads id and quiz conversion label are set.
+ * send_to is GOOGLE_ADS_ID + "/" + QUIZ_CONVERSION_LABEL.
+ * The base tag loads on every page. The conversion event fires only on
+ * quiz thank-you pages, and only once per browser session.
  */
-var GOOGLE_ADS_ID = "AW-XXXXXXXXX";
-var QUIZ_CONVERSION_LABEL = "PASTE_QUIZ_CONVERSION_LABEL";
+var GOOGLE_ADS_ID = "AW-18485766053";
+var QUIZ_CONVERSION_LABEL = "ch54CI7HnLkdEKXP2e5E";
 
 function isGoogleAdsConfigured(id, label) {
   if (typeof id !== "string" || !/^AW-\d{6,15}$/.test(id)) return false;
   if (typeof label !== "string" || !/^[A-Za-z0-9_-]{4,80}$/.test(label)) return false;
   if (/PASTE|PLACEHOLDER|XXXX|TODO/i.test(label)) return false;
   return true;
+}
+
+function quizConversionSeen(win) {
+  try {
+    return !!(win.sessionStorage && win.sessionStorage.getItem("cvps-quiz-conversion") === "1");
+  } catch (err) {
+    return false;
+  }
+}
+
+function markQuizConversion(win) {
+  try {
+    if (win.sessionStorage) win.sessionStorage.setItem("cvps-quiz-conversion", "1");
+  } catch (err) {}
 }
 
 function installGoogleAds(win, id, label) {
@@ -29,8 +41,10 @@ function installGoogleAds(win, id, label) {
   win.gtag("js", new Date());
   win.gtag("config", id);
   var body = win.document.body;
-  if (body && body.getAttribute("data-quiz-conversion") === "true") {
-    win.gtag("event", "conversion", { send_to: id + "/" + label });
+  var sendTo = id + "/" + label;
+  if (body && body.getAttribute("data-quiz-conversion") === "true" && !quizConversionSeen(win)) {
+    win.gtag("event", "conversion", { send_to: sendTo });
+    markQuizConversion(win);
   }
   var script = win.document.createElement("script");
   script.async = true;
