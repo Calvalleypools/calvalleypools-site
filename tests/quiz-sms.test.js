@@ -50,20 +50,24 @@ test("signature and variants stay under 300 characters", function () {
     assert.ok(decision.content.endsWith(SIGNATURE), decision.content);
     assert.equal(decision.content.includes("748"), false);
     assert.equal(decision.content.includes("661-748-0859"), false);
+    assert.equal(/\$|price/i.test(decision.content), false, decision.content);
+    assert.match(decision.content, /^Got it, .+\. I'll send your quote soon/);
   });
 });
 
 test("message variants match the spec", function () {
   var green = sms.decideText({ data: lead(), env: prodEnv(), now: noon() });
   assert.equal(green.variant, "in-green");
-  assert.match(green.content, /Got your quiz: green pool/);
-  assert.match(green.content, /1234 Stockdale Hwy/);
+  assert.equal(
+    green.content,
+    "Got it, Sarah. I'll send your quote soon. " + SIGNATURE
+  );
 
   var cloudy = sms.decideText({ data: lead({ water: "cloudy" }), env: prodEnv(), now: noon() });
-  assert.match(cloudy.content, /Cloudy water is usually a quick fix/);
+  assert.match(cloudy.content, /^Got it, Sarah\. I'll send your quote soon\. /);
 
   var clear = sms.decideText({ data: lead({ water: "clear" }), env: prodEnv(), now: noon() });
-  assert.match(clear.content, /Clear water\? Let's keep it that way/);
+  assert.match(clear.content, /^Got it, Sarah\. I'll send your quote soon\. /);
 
   var out = sms.decideText({
     data: lead({ area: "out", zip: "93308", services: "tile, drain" }),
@@ -71,12 +75,12 @@ test("message variants match the spec", function () {
     now: noon()
   });
   assert.equal(out.variant, "out");
-  assert.match(out.content, /don't run weekly routes/);
-  assert.match(out.content, /tile cleaning and drain & clean/);
+  assert.match(out.content, /^Got it, Sarah\. I'll send your quote soon for tile cleaning and drain & clean\. /);
+  assert.equal(/\$|price/i.test(out.content), false);
 
   var missing = sms.decideText({ data: lead({ address: "pool" }), env: prodEnv(), now: noon() });
   assert.equal(missing.variant, "missing-address");
-  assert.match(missing.content, /What's the pool address so I can quote it\?/);
+  assert.match(missing.content, /^Got it, Sarah\. I'll send your quote soon\. What's the pool address\? /);
 
   var extras = sms.decideText({
     data: lead({ services: "weekly, tile" }),
@@ -84,8 +88,8 @@ test("message variants match the spec", function () {
     now: noon()
   });
   assert.equal(extras.variant, "in-green");
-  assert.match(extras.content, /green pool, we're on it\. You also asked about tile cleaning\./);
-  assert.match(extras.content, new RegExp(sms.SIGNATURE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$"));
+  assert.match(extras.content, /^Got it, Sarah\. I'll send your quote soon for weekly pool service and tile cleaning\. /);
+  assert.ok(extras.content.endsWith(SIGNATURE));
 
   var servicesOnly = sms.decideText({
     data: lead({ area: "in", zip: "93312", services: "repairs, green" }),
@@ -93,8 +97,8 @@ test("message variants match the spec", function () {
     now: noon()
   });
   assert.equal(servicesOnly.variant, "in-services");
-  assert.match(servicesOnly.content, /Got your request for green pool cleanup and repairs/);
-  assert.equal(/don't run weekly routes/.test(servicesOnly.content), false);
+  assert.match(servicesOnly.content, /^Got it, Sarah\. I'll send your quote soon for green pool cleanup and repairs\. /);
+  assert.equal(/\$|price/i.test(servicesOnly.content), false);
 });
 
 test("93306 not sure is out of area, yes is in area", function () {
@@ -172,7 +176,7 @@ test("handler posts the Quo payload only for a real production lead", async func
   var body = JSON.parse(calls[0].init.body);
   assert.equal(body.from, "+16617480859");
   assert.deepEqual(body.to, ["+16615550100"]);
-  assert.match(body.content, /Hi Sarah,/);
+  assert.match(body.content, /Got it, Sarah\. I'll send your quote soon\./);
   assert.equal(logs.some(function (entry) { return entry.action === "sent"; }), true);
 });
 
@@ -194,4 +198,97 @@ test("handler ignores other forms and deploy previews", async function () {
 test("entry exports the Netlify handler", function () {
   assert.equal(typeof entry.handler, "function");
   assert.equal(entry.default, entry.handler);
+});
+
+function deskEnv(extra) {
+  return Object.assign({
+    QUOTE_DESK_INTAKE_URL: "https://quote-desk.example/intake",
+    QUOTE_DESK_APIKEY: "desk-key",
+    QUOTE_DESK_INTAKE_SECRET: "desk-secret"
+  }, extra || {});
+}
+
+test("quote desk is skipped when any env var is missing, and the text path still runs", async function () {
+  var calls = [];
+  var logs = [];
+  var handler = sms.createHandler({
+    env: prodEnv({ QUOTE_DESK_INTAKE_URL: "https://quote-desk.example/intake", QUOTE_DESK_APIKEY: "desk-key" }),
+    now: function () { return noon(); },
+    log: function (entry) { logs.push(entry); },
+    fetch: function (url, init) {
+      calls.push({ url: url, init: init });
+      return Promise.resolve({ status: 202, text: function () { return Promise.resolve(""); } });
+    }
+  });
+  var result = await handler({
+    body: JSON.stringify({ payload: { id: "sub-2", form_name: "pool-quiz", data: lead() } })
+  });
+  assert.equal(result.body, "sent");
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://api.quo.com/v1/messages");
+  assert.equal(logs.some(function (entry) { return entry.source === "quote-desk" && entry.reason === "missing-env"; }), true);
+  assert.equal(JSON.stringify(logs).includes("desk-key"), false);
+});
+
+test("quote desk forward runs in deploy preview and does not block a text failure", async function () {
+  var calls = [];
+  var logs = [];
+  var handler = sms.createHandler({
+    env: deskEnv({ CONTEXT: "deploy-preview", QUO_API_KEY: "test-key", QUO_FROM_NUMBER: "+16617480859" }),
+    now: function () { return noon(); },
+    log: function (entry) { logs.push(entry); },
+    fetch: function (url, init) {
+      calls.push({ url: url, init: init });
+      if (url.indexOf("quote-desk") !== -1) {
+        return Promise.reject(Object.assign(new Error("down"), { name: "TimeoutError" }));
+      }
+      return Promise.resolve({ status: 202, text: function () { return Promise.resolve(""); } });
+    }
+  });
+  var result = await handler({
+    body: JSON.stringify({
+      payload: { id: "sub-3", form_name: "pool-quiz", data: lead({ email: "sarah@example.com" }) }
+    })
+  });
+  assert.equal(result.body, "not-production");
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://quote-desk.example/intake");
+  assert.equal(calls[0].init.method, "POST");
+  assert.equal(calls[0].init.headers["content-type"], "application/json");
+  assert.equal(calls[0].init.headers.apikey, "desk-key");
+  assert.equal(calls[0].init.headers["x-quiz-secret"], "desk-secret");
+  assert.equal(calls[0].init.signal.aborted, false);
+  var forwarded = JSON.parse(calls[0].init.body);
+  assert.equal(forwarded.id, "sub-3");
+  assert.equal(forwarded.form_name, "pool-quiz");
+  assert.equal(forwarded.data.email, "sarah@example.com");
+  assert.equal(forwarded.data.name, "Sarah");
+  var deskLog = logs.filter(function (entry) { return entry.source === "quote-desk"; })[0];
+  assert.equal(deskLog.action, "error");
+  assert.equal(deskLog.reason, "timeout");
+  assert.equal(JSON.stringify(logs).includes("desk-secret"), false);
+});
+
+test("quote desk status codes are logged and a 201 does not change the text result", async function () {
+  var statuses = [201, 200, 401, 422, 500];
+  var expected = ["created", "duplicate-or-skipped", "bad-secret", "missing-name-or-phone", "unexpected"];
+  for (var i = 0; i < statuses.length; i++) {
+    var logs = [];
+    var status = statuses[i];
+    var handler = sms.createHandler({
+      env: deskEnv({ CONTEXT: "deploy-preview" }),
+      now: function () { return noon(); },
+      log: function (entry) { logs.push(entry); },
+      fetch: function () {
+        return Promise.resolve({ status: status, text: function () { return Promise.resolve("nope"); } });
+      }
+    });
+    var result = await handler({
+      body: JSON.stringify({ payload: { id: "sub-4", form_name: "pool-quiz", data: lead() } })
+    });
+    assert.notEqual(result.body, "sent");
+    var deskLog = logs.filter(function (entry) { return entry.source === "quote-desk"; })[0];
+    assert.equal(deskLog.status, status);
+    assert.equal(deskLog.result, expected[i]);
+  }
 });

@@ -58,6 +58,15 @@ test("quiz pages are noindex and not linked from the site", function () {
   assert.match(read("quote/index.html"), /netlify-honeypot="bot"/);
   assert.match(read("quote/index.html"), /Text me about my quote\. Msg &amp; data rates may apply\. Reply STOP to opt out\./);
   assert.match(read("quote/index.html"), /value="weekly" checked/);
+  var emailTag = read("quote/index.html").match(/<input id="quiz-email"[^>]*>/);
+  assert.ok(emailTag, "email field");
+  assert.match(emailTag[0], /name="email"/);
+  assert.match(emailTag[0], /type="email"/);
+  assert.equal(/required/.test(emailTag[0]), false);
+  assert.match(read("quote/index.html"), /Email \(optional\)/);
+  ["name", "phone", "address", "consent", "services", "water", "zip", "area", "verify_93306"].forEach(function (field) {
+    assert.match(read("quote/index.html"), new RegExp("name=\"" + field + "\""));
+  });
   assert.match(read("robots.txt"), /Disallow: \/thanks-services\//);
   ["in-green", "in-cloudy", "in-clear", "out", "services"].forEach(function (kind) {
     var matches = htmlFiles.filter(function (file) {

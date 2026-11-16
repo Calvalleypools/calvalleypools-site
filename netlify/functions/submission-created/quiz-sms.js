@@ -91,35 +91,14 @@ function servicesFrom(data) {
   return "";
 }
 
-function alsoAsked(services) {
-  return quote.extraSentence(services);
-}
-
 function buildBody(lead) {
   var who = firstName(lead.name);
-  if (lead.missing) {
-    return "Hi " + who + ", it's Brandon with Cal Valley Pool & Spa. Got your quiz. What's the pool address so I can quote it?";
-  }
-  var addr = oneLine(lead.address);
-  if (lead.area === "out") {
-    var what = quote.servicePhrase(lead.services, { omit: ["weekly"] }) || quote.servicePhrase("repairs, equipment, tile, drain");
-    return "Hi " + who + ", Brandon with Cal Valley Pool & Spa. We don't run weekly routes in your zip, but we do " + what + " anywhere in Kern County. Is " + addr + " the pool address? Send a photo or two and I'll quote it.";
-  }
-  if (!quote.hasWeekly(lead.services)) {
-    var requested = quote.servicePhrase(lead.services) || "pool service";
-    return "Hi " + who + ", Brandon with Cal Valley Pool & Spa. Got your request for " + requested + ". Is " + addr + " the pool address? I'll quote it.";
-  }
-  var extra = alsoAsked(lead.services);
-  if (lead.water === "green") {
-    return "Hi " + who + ", it's Brandon with Cal Valley Pool & Spa. Got your quiz: green pool, we're on it." + extra + " Is " + addr + " the right pool address for your free quote? Reply YES or send the correct one.";
-  }
-  if (lead.water === "cloudy") {
-    return "Hi " + who + ", Brandon here, Cal Valley Pool & Spa. Cloudy water is usually a quick fix." + extra + " Confirm " + addr + " is the pool and I'll put your free quote together today.";
-  }
-  if (lead.water === "clear") {
-    return "Hi " + who + ", Brandon with Cal Valley Pool & Spa. Clear water? Let's keep it that way: same day every week, a text before, a report after, chemicals included." + extra + " Is " + addr + " right for your free quote?";
-  }
-  return "Hi " + who + ", it's Brandon with Cal Valley Pool & Spa. Got your quiz." + extra + " Is " + addr + " the right pool address for your free quote?";
+  var phrase = quote.servicePhrase(lead.services);
+  var body = "Got it, " + who + ". I'll send your quote soon";
+  if (phrase) body += " for " + phrase;
+  body += ".";
+  if (lead.missing) body += " What's the pool address?";
+  return body;
 }
 
 function fitMessage(body, address) {
@@ -210,8 +189,9 @@ function redact(text, secret) {
   return out;
 }
 
-function postJson(urlString, headers, payload, fetchImpl) {
+function postJson(urlString, headers, payload, fetchImpl, timeoutMs) {
   var body = JSON.stringify(payload);
+  var limit = timeoutMs || 10000;
   if (fetchImpl) {
     var init = {
       method: "POST",
@@ -219,7 +199,7 @@ function postJson(urlString, headers, payload, fetchImpl) {
       body: body
     };
     if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
-      init.signal = AbortSignal.timeout(10000);
+      init.signal = AbortSignal.timeout(limit);
     }
     return fetchImpl(urlString, init).then(function (res) {
       return res.text().then(function (text) {
@@ -240,7 +220,7 @@ function postJson(urlString, headers, payload, fetchImpl) {
         resolve({ status: res.statusCode, body: Buffer.concat(chunks).toString("utf8") });
       });
     });
-    req.setTimeout(10000, function () {
+    req.setTimeout(limit, function () {
       req.destroy(new Error("timeout"));
     });
     req.on("error", reject);
@@ -272,6 +252,75 @@ function formNameOf(payload) {
   return "";
 }
 
+var QUOTE_DESK_STATUS = {
+  201: "created",
+  200: "duplicate-or-skipped",
+  401: "bad-secret",
+  422: "missing-name-or-phone"
+};
+
+function quoteDeskConfigured(env) {
+  return Boolean(
+    String(env.QUOTE_DESK_INTAKE_URL || "").trim() &&
+    String(env.QUOTE_DESK_APIKEY || "").trim() &&
+    String(env.QUOTE_DESK_INTAKE_SECRET || "").trim()
+  );
+}
+
+/* Forwards a pool-quiz submission to the internal quote desk. Runs in every
+   Netlify context. Creates a draft only; it does not text or email the customer.
+   Missing env vars are logged and skipped. Errors never escape. */
+async function forwardQuoteDesk(payload, env, fetchImpl, log) {
+  var url = String(env.QUOTE_DESK_INTAKE_URL || "").trim();
+  var apiKey = String(env.QUOTE_DESK_APIKEY || "").trim();
+  var secret = String(env.QUOTE_DESK_INTAKE_SECRET || "").trim();
+  if (!url || !apiKey || !secret) {
+    log({ source: "quote-desk", action: "skip", reason: "missing-env", submissionId: payload.id || null });
+    return;
+  }
+  try {
+    var body = JSON.stringify({
+      id: payload.id,
+      form_name: payload.form_name || (payload.data && payload.data["form-name"]) || "",
+      data: payload.data || {}
+    });
+    var headers = {
+      "content-type": "application/json",
+      apikey: apiKey,
+      "x-quiz-secret": secret
+    };
+    var doFetch = fetchImpl || (typeof fetch === "function" ? fetch : null);
+    var status;
+    if (doFetch) {
+      var init = { method: "POST", headers: headers, body: body };
+      if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+        init.signal = AbortSignal.timeout(5000);
+      }
+      var res = await doFetch(url, init);
+      status = res.status;
+    } else {
+      var fallback = await postJson(url, headers, JSON.parse(body), null, 5000);
+      status = fallback.status;
+    }
+    log({
+      source: "quote-desk",
+      action: "forwarded",
+      status: status,
+      result: QUOTE_DESK_STATUS[status] || "unexpected",
+      submissionId: payload.id || null
+    });
+  } catch (err) {
+    var reason = "network";
+    if (err && (err.name === "TimeoutError" || err.name === "AbortError")) reason = "timeout";
+    log({
+      source: "quote-desk",
+      action: "error",
+      reason: reason,
+      submissionId: payload.id || null
+    });
+  }
+}
+
 function createHandler(options) {
   var opts = options || {};
   var fetchImpl = opts.fetch || null;
@@ -293,6 +342,11 @@ function createHandler(options) {
     var payload = extractPayload(body);
     if (formNameOf(payload) !== "pool-quiz") {
       return { statusCode: 200, body: "ignored" };
+    }
+    try {
+      await forwardQuoteDesk(payload, env, fetchImpl, log);
+    } catch (err) {
+      log({ source: "quote-desk", action: "error", reason: "unexpected", submissionId: payload.id || null });
     }
     var decision = decideText({
       data: payload.data || {},
@@ -359,5 +413,7 @@ module.exports = {
   decideText: decideText,
   createHandler: createHandler,
   readBody: readBody,
-  extractPayload: extractPayload
+  extractPayload: extractPayload,
+  forwardQuoteDesk: forwardQuoteDesk,
+  quoteDeskConfigured: quoteDeskConfigured
 };
