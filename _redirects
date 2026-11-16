@@ -17,4 +17,8 @@ http://calvalleypools.com/* https://calvalleypools.com/:splat 301!
 http://www.calvalleypools.com/* https://www.calvalleypools.com/:splat 301!
 https://www.calvalleypools.com/* https://calvalleypools.com/:splat 301!
 
+# Function source and test files are not public pages.
+/netlify/* /404/index.html 404!
+/tests/* /404/index.html 404!
+
 /* /404/index.html 404

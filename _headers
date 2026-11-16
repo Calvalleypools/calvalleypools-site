@@ -1,0 +1,9 @@
+# Quiz and thank-you pages stay out of search until they are linked on purpose.
+/quote*
+  X-Robots-Tag: noindex, nofollow
+
+/thanks-in-*
+  X-Robots-Tag: noindex, nofollow
+
+/thanks-out*
+  X-Robots-Tag: noindex, nofollow
