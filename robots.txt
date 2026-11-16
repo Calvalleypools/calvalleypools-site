@@ -1,7 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /thank-you/
-Disallow: /quote/
 Disallow: /thanks-in-green/
 Disallow: /thanks-in-cloudy/
 Disallow: /thanks-in-clear/

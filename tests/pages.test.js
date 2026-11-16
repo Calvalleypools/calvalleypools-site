@@ -33,27 +33,34 @@ function read(rel) {
 test("quiz pages are noindex and not linked from the site", function () {
   quizPages.forEach(function (file) {
     var html = fs.readFileSync(file, "utf8");
-    assert.match(html, /<meta name="robots" content="noindex,nofollow">/);
+    var rel = path.relative(root, file);
+    if (rel === "quote/index.html") {
+      assert.match(html, /<meta name="robots" content="index,follow">/);
+      assert.equal(html.includes("noindex"), false);
+    } else {
+      assert.match(html, /<meta name="robots" content="noindex,nofollow">/);
+    }
     assert.match(html, /661-747-9184/);
     assert.equal(/661-748|748-0859|16617480859/.test(html), false, file);
     assert.equal(/licensed/i.test(html), false, file);
     assert.equal(/no contract|no minimum/i.test(html), false, file);
     assert.equal(/\$\d/.test(html), false, file);
     assert.equal(/leave a review/i.test(html), false, file);
-    assert.equal(/href="\/quote(\/|")/.test(html), false, file);
     assert.equal(/href="\/thanks-in-|href="\/thanks-out(\/|")|href="\/thanks-services(\/|")/.test(html), false, file);
+    assert.equal(/within a minute|right now|Check your phone|on the way/i.test(html), false, file);
   });
 
   htmlFiles.forEach(function (file) {
     var html = fs.readFileSync(file, "utf8");
-    assert.equal(/href="\/quote(\/|")/.test(html), false, file);
+    assert.match(html, /<a class="button small" href="\/quote\/">Get a quote<\/a>/);
+    assert.match(html, /<a class="button small" href="tel:\+16617479184">661-747-9184<\/a>/);
     assert.equal(/href="\/thanks-in-|href="\/thanks-out(\/|")|href="\/thanks-services(\/|")/.test(html), false, file);
   });
 
   var sitemap = read("sitemap.xml");
-  assert.equal(sitemap.includes("/quote"), false);
+  assert.match(sitemap, /https:\/\/calvalleypools\.com\/quote\//);
   assert.equal(sitemap.includes("/thanks-"), false);
-  assert.match(read("robots.txt"), /Disallow: \/quote\//);
+  assert.equal(read("robots.txt").includes("Disallow: /quote/"), false);
   assert.match(read("quote/index.html"), /name="pool-quiz"/);
   assert.match(read("quote/index.html"), /netlify-honeypot="bot"/);
   assert.match(read("quote/index.html"), /Text me about my quote\. Msg &amp; data rates may apply\. Reply STOP to opt out\./);
@@ -92,7 +99,9 @@ test("quiz pages are noindex and not linked from the site", function () {
 
 test("existing homepage copy is unchanged aside from files we meant to add", function () {
   var home = read("index.html");
-  assert.equal(home.includes("/quote"), false);
+  assert.match(home, /href="\/quote\/">Get a quote/);
+  assert.match(home, /href="\/contact\/">Get a free quote/);
+  assert.match(home, /661-747-9184/);
   assert.match(home, /Pool Service in Bakersfield/);
   assert.equal(home.includes("google-ads"), false);
 });

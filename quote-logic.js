@@ -141,12 +141,12 @@
       out: who ? "Thanks, " + who + ". We're on it." : "Thanks. We're on it."
     };
     var listed = phrase
-      ? "Brandon is texting you within a minute about your " + phrase + " quote."
-      : "Brandon is texting you within a minute about your quote.";
+      ? "Brandon will text you shortly with your " + phrase + " quote."
+      : "Brandon will text you shortly with your quote.";
     var bodies = {
-      "in-green": "Check your phone. Brandon is texting you within a minute to confirm your address. Green pools get priority." + extra,
-      "in-cloudy": "Brandon is texting you right now to lock in your quote." + extra,
-      "in-clear": "Same day every week, a text before, a report after. Your quote text is on the way." + extra,
+      "in-green": "Brandon will text you shortly with your quote. Green pools get priority." + extra,
+      "in-cloudy": "Brandon will text you shortly with your quote." + extra,
+      "in-clear": "Same day every week, a text before, a report after. Brandon will text you shortly with your quote." + extra,
       services: listed,
       out: listed
     };

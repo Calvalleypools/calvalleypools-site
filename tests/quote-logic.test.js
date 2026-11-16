@@ -44,33 +44,33 @@ test("zip must be five digits", function () {
 test("thank-you copy matches the spec, with the first name when we have one", function () {
   assert.deepEqual(quote.thankYou("in-green", "Sarah", ""), {
     title: "Got it, Sarah. Let's kill the green.",
-    body: "Check your phone. Brandon is texting you within a minute to confirm your address. Green pools get priority."
+    body: "Brandon will text you shortly with your quote. Green pools get priority."
   });
   assert.equal(quote.thankYou("in-cloudy", "Sarah Jane", "").title, "Got it, Sarah. Crystal clear is close.");
-  assert.equal(quote.thankYou("in-cloudy", "Sarah", "").body, "Brandon is texting you right now to lock in your quote.");
+  assert.equal(quote.thankYou("in-cloudy", "Sarah", "").body, "Brandon will text you shortly with your quote.");
   assert.equal(quote.thankYou("in-clear", "Sarah", "").title, "Nice pool, Sarah. Let's keep it that way.");
-  assert.equal(quote.thankYou("in-clear", "", "").body, "Same day every week, a text before, a report after. Your quote text is on the way.");
+  assert.equal(quote.thankYou("in-clear", "", "").body, "Same day every week, a text before, a report after. Brandon will text you shortly with your quote.");
   assert.equal(quote.thankYou("out", "Sarah", "tile").title, "Thanks, Sarah. We're on it.");
   assert.equal(
     quote.thankYou("out", "Sarah", "tile").body,
-    "Brandon is texting you within a minute about your tile cleaning quote."
+    "Brandon will text you shortly with your tile cleaning quote."
   );
   assert.equal(
     quote.thankYou("out", "Sarah", "drain,repairs").body,
-    "Brandon is texting you within a minute about your repairs and drain & clean quote."
+    "Brandon will text you shortly with your repairs and drain & clean quote."
   );
   assert.equal(
     quote.thankYou("out", "", "").body,
-    "Brandon is texting you within a minute about your quote."
+    "Brandon will text you shortly with your quote."
   );
   assert.equal(quote.thankYou("in-green", "", "").title, "Got it. Let's kill the green.");
   assert.match(quote.thankYou("in-green", "Sarah", "weekly,tile,repairs").body, /Green pools get priority\. You also asked about repairs and tile cleaning\./);
   assert.equal(
     quote.thankYou("services", "Sarah", "green,drain").body,
-    "Brandon is texting you within a minute about your green pool cleanup and drain & clean quote."
+    "Brandon will text you shortly with your green pool cleanup and drain & clean quote."
   );
   assert.equal(/outside|routes are full|out of area/i.test(quote.thankYou("services", "Sarah", "repairs").body), false);
-  assert.equal(quote.thankYou("in-clear", "Sarah", "weekly").body, "Same day every week, a text before, a report after. Your quote text is on the way.");
+  assert.equal(quote.thankYou("in-clear", "Sarah", "weekly").body, "Same day every week, a text before, a report after. Brandon will text you shortly with your quote.");
 });
 
 test("thanks paths", function () {
