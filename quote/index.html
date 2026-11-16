@@ -19,7 +19,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="/style.css?v=seo-20261022">
-<link rel="stylesheet" href="/quote.css?v=quiz-20261116">
+<link rel="stylesheet" href="/quote.css?v=quiz-20261116b">
 <script defer src="/app.js?v=seo-20261022"></script>
 </head>
 <body data-theme="mist">
@@ -49,7 +49,7 @@
 <input type="hidden" name="service_list" value="">
 
 <div class="quiz-step" id="step-water">
-<p class="quiz-kicker" id="quiz-kicker">Step 1 of 3</p>
+<p class="quiz-kicker" id="quiz-kicker">Step 1 of 4</p>
 <h2 id="water-title">Be honest. What color is your water today?</h2>
 <div class="quiz-choices" role="group" aria-labelledby="water-title">
 <button type="button" class="quiz-choice quiz-choice-green" data-water="green" aria-pressed="false"><span class="quiz-dot" aria-hidden="true"></span><span>GREEN: It's a swamp out there.</span></button>
@@ -61,7 +61,7 @@
 
 <div class="quiz-step" id="step-zip" hidden>
 <button type="button" class="quiz-back" data-back="water">Back</button>
-<p class="quiz-kicker">Step 2 of 3</p>
+<p class="quiz-kicker">Step 2 of 4</p>
 <h2 id="zip-title">What's your zip?</h2>
 <label class="quiz-sr" for="zip">ZIP code</label>
 <input id="zip" name="zip" inputmode="numeric" autocomplete="postal-code" maxlength="5" pattern="[0-9]{5}" aria-describedby="zip-help zip-error" required>
@@ -78,7 +78,7 @@
 
 <div class="quiz-step" id="step-out" hidden>
 <button type="button" class="quiz-back" data-back="zip">Back</button>
-<p class="quiz-kicker">Step 2 of 3</p>
+<p class="quiz-kicker">Step 3 of 4</p>
 <h2 id="out-title">Weekly routes are full in your area, but we still come to you.</h2>
 <p>We handle these anywhere in Kern County:</p>
 <div class="quiz-checks" role="group" aria-labelledby="out-title">
@@ -91,9 +91,26 @@
 <button type="button" class="button" id="out-next">NEXT &rarr;</button>
 </div>
 
+<div class="quiz-step" id="step-services" hidden>
+<button type="button" class="quiz-back" data-back="zip">Back</button>
+<p class="quiz-kicker">Step 3 of 4</p>
+<h2 id="services-title">What should we quote?</h2>
+<p>Weekly service is selected. Add anything else you want quoted.</p>
+<div class="quiz-checks" role="group" aria-labelledby="services-title">
+<label><input type="checkbox" name="services" value="weekly" checked> Weekly pool service</label>
+<label><input type="checkbox" name="services" value="green"> Green pool cleanup</label>
+<label><input type="checkbox" name="services" value="repairs"> Repairs</label>
+<label><input type="checkbox" name="services" value="equipment"> Equipment (pumps, filters, heaters)</label>
+<label><input type="checkbox" name="services" value="tile"> Tile cleaning</label>
+<label><input type="checkbox" name="services" value="drain"> Drain &amp; clean</label>
+</div>
+<p id="services-error" class="quiz-error" role="alert"></p>
+<button type="button" class="button" id="services-next">NEXT &rarr;</button>
+</div>
+
 <div class="quiz-step" id="step-contact" hidden>
 <button type="button" class="quiz-back" id="contact-back">Back</button>
-<p class="quiz-kicker">Step 3 of 3</p>
+<p class="quiz-kicker">Step 4 of 4</p>
 <h2 id="contact-title">Where should we send your free quote?</h2>
 <label for="quiz-name">First name<input id="quiz-name" name="name" autocomplete="given-name" maxlength="40" required aria-describedby="name-error"></label>
 <p id="name-error" class="quiz-error" role="alert"></p>
@@ -112,7 +129,7 @@
 </main>
 <footer><div class="footer-brand">Cal Valley Pool &amp; Spa<p>3125 Henry Ln Ste F16, Bakersfield, CA 93308<br>Mon–Sat 9 AM–5 PM<br>Weekly pool service: 93306 (east Bakersfield), 93311, 93312 &amp; 93314.<br>Repairs, green-to-clean, filter cleaning, water changes &amp; tile cleaning: all of Kern County.</p></div><div><a href="/services/">All services</a><a href="/services/regular-pool-maintenance/">Weekly pool service</a><a href="/services/pool-repair/">Pool equipment repair</a><a href="/services/pool-tile-cleaning/">Tile cleaning &amp; bead blasting</a><a href="/services/green-pool-cleanup/">Green pool cleanup</a><a href="/services/filter-cleaning/">Filter cleaning</a><a href="/services/water-change/">Water change</a></div><div><a href="/service-areas/">Service areas</a><a href="/service-areas/93306/">Pool service 93306</a><a href="/service-areas/93311/">Pool service 93311</a><a href="/service-areas/93312/">Pool service 93312</a><a href="/service-areas/93314/">Pool service 93314</a></div><div><a href="tel:+16617479184">661-747-9184</a><a href="mailto:brandon@calvalleypools.com">brandon@calvalleypools.com</a><a href="/reviews/">Reviews</a><a href="/blog/">Pool tips</a><a href="/privacy/">Privacy</a></div><p class="copyright">&copy; 2026 Cal Valley Pool &amp; Spa</p></footer>
 <div class="mobile-cta"><a href="tel:+16617479184">Call now</a><a href="/contact/">Get a quote &#8599;</a></div>
-<script src="/quote-logic.js?v=quiz-20261116"></script>
-<script src="/quote/quiz.js?v=quiz-20261116"></script>
+<script src="/quote-logic.js?v=quiz-20261116b"></script>
+<script src="/quote/quiz.js?v=quiz-20261116b"></script>
 </body>
 </html>

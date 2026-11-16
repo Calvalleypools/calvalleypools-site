@@ -91,6 +91,10 @@ function servicesFrom(data) {
   return "";
 }
 
+function alsoAsked(services) {
+  return quote.extraSentence(services);
+}
+
 function buildBody(lead) {
   var who = firstName(lead.name);
   if (lead.missing) {
@@ -98,19 +102,24 @@ function buildBody(lead) {
   }
   var addr = oneLine(lead.address);
   if (lead.area === "out") {
-    var what = quote.servicePhrase(lead.services) || quote.servicePhrase("repairs, equipment, tile, drain");
+    var what = quote.servicePhrase(lead.services, { omit: ["weekly"] }) || quote.servicePhrase("repairs, equipment, tile, drain");
     return "Hi " + who + ", Brandon with Cal Valley Pool & Spa. We don't run weekly routes in your zip, but we do " + what + " anywhere in Kern County. Is " + addr + " the pool address? Send a photo or two and I'll quote it.";
   }
+  if (!quote.hasWeekly(lead.services)) {
+    var requested = quote.servicePhrase(lead.services) || "pool service";
+    return "Hi " + who + ", Brandon with Cal Valley Pool & Spa. Got your request for " + requested + ". Is " + addr + " the pool address? I'll quote it.";
+  }
+  var extra = alsoAsked(lead.services);
   if (lead.water === "green") {
-    return "Hi " + who + ", it's Brandon with Cal Valley Pool & Spa. Got your quiz: green pool, we're on it. Is " + addr + " the right pool address for your free quote? Reply YES or send the correct one.";
+    return "Hi " + who + ", it's Brandon with Cal Valley Pool & Spa. Got your quiz: green pool, we're on it." + extra + " Is " + addr + " the right pool address for your free quote? Reply YES or send the correct one.";
   }
   if (lead.water === "cloudy") {
-    return "Hi " + who + ", Brandon here, Cal Valley Pool & Spa. Cloudy water is usually a quick fix. Confirm " + addr + " is the pool and I'll put your free quote together today.";
+    return "Hi " + who + ", Brandon here, Cal Valley Pool & Spa. Cloudy water is usually a quick fix." + extra + " Confirm " + addr + " is the pool and I'll put your free quote together today.";
   }
   if (lead.water === "clear") {
-    return "Hi " + who + ", Brandon with Cal Valley Pool & Spa. Clear water? Let's keep it that way: same day every week, a text before, a report after, chemicals included. Is " + addr + " right for your free quote?";
+    return "Hi " + who + ", Brandon with Cal Valley Pool & Spa. Clear water? Let's keep it that way: same day every week, a text before, a report after, chemicals included." + extra + " Is " + addr + " right for your free quote?";
   }
-  return "Hi " + who + ", it's Brandon with Cal Valley Pool & Spa. Got your quiz. Is " + addr + " the right pool address for your free quote?";
+  return "Hi " + who + ", it's Brandon with Cal Valley Pool & Spa. Got your quiz." + extra + " Is " + addr + " the right pool address for your free quote?";
 }
 
 function fitMessage(body, address) {
@@ -143,9 +152,10 @@ function buildMessage(lead) {
   return fitMessage(body, missing ? "" : lead.address);
 }
 
-function messageVariant(area, water, missing) {
+function messageVariant(area, water, missing, services) {
   if (missing) return "missing-address";
   if (area === "out") return "out";
+  if (!quote.hasWeekly(services)) return "in-services";
   if (water === "green" || water === "cloudy" || water === "clear") return "in-" + water;
   return "in-unknown";
 }
@@ -186,7 +196,7 @@ function decideText(input) {
   return {
     action: "send",
     reason: "ok",
-    variant: messageVariant(area, water, missing),
+    variant: messageVariant(area, water, missing, services),
     from: from,
     to: to,
     content: content

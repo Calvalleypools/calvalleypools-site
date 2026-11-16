@@ -10,6 +10,8 @@
   var BORDER_ZIP = "93306";
   var VERIFY_FLAG = "verify 93306";
   var SERVICE_ORDER = [
+    ["weekly", "weekly pool service"],
+    ["green", "green pool cleanup"],
     ["repairs", "repairs"],
     ["equipment", "equipment"],
     ["tile", "tile cleaning"],
@@ -59,6 +61,8 @@
 
   function serviceKey(value) {
     var key = String(value || "").trim().toLowerCase();
+    if (key === "weekly" || key === "weekly service" || key === "weekly pool service") return "weekly";
+    if (key === "green" || key === "green pool cleanup" || key === "green cleanup") return "green";
     if (key === "repair" || key === "repairs") return "repairs";
     if (key === "equipment") return "equipment";
     if (key === "tile" || key === "tile cleaning") return "tile";
@@ -73,19 +77,42 @@
     return labels.slice(0, -1).join(", ") + ", and " + labels[labels.length - 1];
   }
 
-  function servicePhrase(input) {
+  function serviceKeys(input) {
     var raw = [];
+    var keys = [];
+    var seen = {};
     flattenServices(input, raw);
-    var have = {};
     raw.forEach(function (item) {
       var key = serviceKey(item);
-      if (key) have[key] = true;
+      if (key && !seen[key]) {
+        seen[key] = true;
+        keys.push(key);
+      }
     });
+    return keys;
+  }
+
+  function servicePhrase(input, options) {
+    var omit = (options && options.omit) || [];
+    var have = {};
+    serviceKeys(input).forEach(function (key) { have[key] = true; });
     var labels = [];
     SERVICE_ORDER.forEach(function (pair) {
-      if (have[pair[0]]) labels.push(pair[1]);
+      if (have[pair[0]] && omit.indexOf(pair[0]) === -1) labels.push(pair[1]);
     });
     return joinAnd(labels);
+  }
+
+  function hasWeekly(input) {
+    var keys = serviceKeys(input);
+    if (!keys.length) return true;
+    return keys.indexOf("weekly") !== -1;
+  }
+
+  function extraSentence(input) {
+    var extra = servicePhrase(input, { omit: ["weekly"] });
+    if (!extra) return "";
+    return " You also asked about " + extra + ".";
   }
 
   function pageName(raw) {
@@ -94,8 +121,9 @@
     return token.slice(0, 24);
   }
 
-  function thanksPath(area, water) {
+  function thanksPath(area, water, services) {
     if (area !== "in") return "/thanks-out/";
+    if (!hasWeekly(services)) return "/thanks-services/";
     if (water === "cloudy") return "/thanks-in-cloudy/";
     if (water === "clear") return "/thanks-in-clear/";
     return "/thanks-in-green/";
@@ -104,20 +132,23 @@
   function thankYou(kind, name, services) {
     var who = pageName(name);
     var phrase = servicePhrase(services);
+    var extra = extraSentence(services);
     var titles = {
       "in-green": who ? "Got it, " + who + ". Let's kill the green." : "Got it. Let's kill the green.",
       "in-cloudy": who ? "Got it, " + who + ". Crystal clear is close." : "Got it. Crystal clear is close.",
       "in-clear": who ? "Nice pool, " + who + ". Let's keep it that way." : "Nice pool. Let's keep it that way.",
+      services: who ? "Thanks, " + who + ". We're on it." : "Thanks. We're on it.",
       out: who ? "Thanks, " + who + ". We're on it." : "Thanks. We're on it."
     };
-    var outBody = phrase
+    var listed = phrase
       ? "Brandon is texting you within a minute about your " + phrase + " quote."
       : "Brandon is texting you within a minute about your quote.";
     var bodies = {
-      "in-green": "Check your phone. Brandon is texting you within a minute to confirm your address. Green pools get priority.",
-      "in-cloudy": "Brandon is texting you right now to lock in your quote.",
-      "in-clear": "Same day every week, a text before, a report after. Your quote text is on the way.",
-      out: outBody
+      "in-green": "Check your phone. Brandon is texting you within a minute to confirm your address. Green pools get priority." + extra,
+      "in-cloudy": "Brandon is texting you right now to lock in your quote." + extra,
+      "in-clear": "Same day every week, a text before, a report after. Your quote text is on the way." + extra,
+      services: listed,
+      out: listed
     };
     return {
       title: titles[kind] || titles.out,
@@ -130,7 +161,10 @@
     BORDER_ZIP: BORDER_ZIP,
     VERIFY_FLAG: VERIFY_FLAG,
     classifyZip: classifyZip,
+    serviceKeys: serviceKeys,
     servicePhrase: servicePhrase,
+    hasWeekly: hasWeekly,
+    extraSentence: extraSentence,
     pageName: pageName,
     thanksPath: thanksPath,
     thankYou: thankYou

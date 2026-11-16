@@ -7,3 +7,6 @@
 
 /thanks-out*
   X-Robots-Tag: noindex, nofollow
+
+/thanks-services*
+  X-Robots-Tag: noindex, nofollow

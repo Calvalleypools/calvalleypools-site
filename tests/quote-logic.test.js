@@ -64,11 +64,20 @@ test("thank-you copy matches the spec, with the first name when we have one", fu
     "Brandon is texting you within a minute about your quote."
   );
   assert.equal(quote.thankYou("in-green", "", "").title, "Got it. Let's kill the green.");
+  assert.match(quote.thankYou("in-green", "Sarah", "weekly,tile,repairs").body, /Green pools get priority\. You also asked about repairs and tile cleaning\./);
+  assert.equal(
+    quote.thankYou("services", "Sarah", "green,drain").body,
+    "Brandon is texting you within a minute about your green pool cleanup and drain & clean quote."
+  );
+  assert.equal(/outside|routes are full|out of area/i.test(quote.thankYou("services", "Sarah", "repairs").body), false);
+  assert.equal(quote.thankYou("in-clear", "Sarah", "weekly").body, "Same day every week, a text before, a report after. Your quote text is on the way.");
 });
 
 test("thanks paths", function () {
   assert.equal(quote.thanksPath("in", "green"), "/thanks-in-green/");
+  assert.equal(quote.thanksPath("in", "green", "weekly,tile"), "/thanks-in-green/");
   assert.equal(quote.thanksPath("in", "cloudy"), "/thanks-in-cloudy/");
   assert.equal(quote.thanksPath("in", "clear"), "/thanks-in-clear/");
-  assert.equal(quote.thanksPath("out", "green"), "/thanks-out/");
+  assert.equal(quote.thanksPath("in", "green", "repairs,tile"), "/thanks-services/");
+  assert.equal(quote.thanksPath("out", "green", "tile"), "/thanks-out/");
 });

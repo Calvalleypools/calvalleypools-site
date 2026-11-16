@@ -77,6 +77,24 @@ test("message variants match the spec", function () {
   var missing = sms.decideText({ data: lead({ address: "pool" }), env: prodEnv(), now: noon() });
   assert.equal(missing.variant, "missing-address");
   assert.match(missing.content, /What's the pool address so I can quote it\?/);
+
+  var extras = sms.decideText({
+    data: lead({ services: "weekly, tile" }),
+    env: prodEnv(),
+    now: noon()
+  });
+  assert.equal(extras.variant, "in-green");
+  assert.match(extras.content, /green pool, we're on it\. You also asked about tile cleaning\./);
+  assert.match(extras.content, new RegExp(sms.SIGNATURE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$"));
+
+  var servicesOnly = sms.decideText({
+    data: lead({ area: "in", zip: "93312", services: "repairs, green" }),
+    env: prodEnv(),
+    now: noon()
+  });
+  assert.equal(servicesOnly.variant, "in-services");
+  assert.match(servicesOnly.content, /Got your request for green pool cleanup and repairs/);
+  assert.equal(/don't run weekly routes/.test(servicesOnly.content), false);
 });
 
 test("93306 not sure is out of area, yes is in area", function () {

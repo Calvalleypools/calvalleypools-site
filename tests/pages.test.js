@@ -22,7 +22,8 @@ const quizPages = [
   "thanks-in-green/index.html",
   "thanks-in-cloudy/index.html",
   "thanks-in-clear/index.html",
-  "thanks-out/index.html"
+  "thanks-out/index.html",
+  "thanks-services/index.html"
 ].map(function (rel) { return path.join(root, rel); });
 
 function read(rel) {
@@ -40,13 +41,13 @@ test("quiz pages are noindex and not linked from the site", function () {
     assert.equal(/\$\d/.test(html), false, file);
     assert.equal(/leave a review/i.test(html), false, file);
     assert.equal(/href="\/quote(\/|")/.test(html), false, file);
-    assert.equal(/href="\/thanks-in-|href="\/thanks-out(\/|")/.test(html), false, file);
+    assert.equal(/href="\/thanks-in-|href="\/thanks-out(\/|")|href="\/thanks-services(\/|")/.test(html), false, file);
   });
 
   htmlFiles.forEach(function (file) {
     var html = fs.readFileSync(file, "utf8");
     assert.equal(/href="\/quote(\/|")/.test(html), false, file);
-    assert.equal(/href="\/thanks-in-|href="\/thanks-out(\/|")/.test(html), false, file);
+    assert.equal(/href="\/thanks-in-|href="\/thanks-out(\/|")|href="\/thanks-services(\/|")/.test(html), false, file);
   });
 
   var sitemap = read("sitemap.xml");
@@ -56,7 +57,9 @@ test("quiz pages are noindex and not linked from the site", function () {
   assert.match(read("quote/index.html"), /name="pool-quiz"/);
   assert.match(read("quote/index.html"), /netlify-honeypot="bot"/);
   assert.match(read("quote/index.html"), /Text me about my quote\. Msg &amp; data rates may apply\. Reply STOP to opt out\./);
-  ["in-green", "in-cloudy", "in-clear", "out"].forEach(function (kind) {
+  assert.match(read("quote/index.html"), /value="weekly" checked/);
+  assert.match(read("robots.txt"), /Disallow: \/thanks-services\//);
+  ["in-green", "in-cloudy", "in-clear", "out", "services"].forEach(function (kind) {
     var matches = htmlFiles.filter(function (file) {
       return fs.readFileSync(file, "utf8").includes('data-thanks="' + kind + '"');
     });

@@ -9,6 +9,7 @@
   var steps = {
     water: document.getElementById("step-water"),
     zip: document.getElementById("step-zip"),
+    services: document.getElementById("step-services"),
     out: document.getElementById("step-out"),
     contact: document.getElementById("step-contact")
   };
@@ -32,10 +33,11 @@
     if (main) main.classList.toggle("is-started", name !== "water");
     var kicker = document.getElementById("quiz-kicker");
     var labels = {
-      water: "Step 1 of 3",
-      zip: "Step 2 of 3",
-      out: "Step 2 of 3",
-      contact: "Step 3 of 3"
+      water: "Step 1 of 4",
+      zip: "Step 2 of 4",
+      services: "Step 3 of 4",
+      out: "Step 3 of 4",
+      contact: "Step 4 of 4"
     };
     if (kicker) kicker.textContent = labels[name] || "";
     if (name === "zip") {
@@ -65,11 +67,19 @@
     field("zip").removeAttribute("aria-invalid");
   }
 
+  function setServiceGroup(area) {
+    var inBoxes = document.querySelectorAll("#step-services input[type=checkbox]");
+    var outBoxes = document.querySelectorAll("#step-out input[type=checkbox]");
+    for (var i = 0; i < inBoxes.length; i++) inBoxes[i].disabled = area !== "in";
+    for (var i = 0; i < outBoxes.length; i++) outBoxes[i].disabled = area === "in";
+  }
+
   function applyArea(result) {
     field("area").value = result.area || "";
     field("east_of_morning").value = result.east || "";
     field("verify_93306").value = result.verify93306 ? CVPSQuote.VERIFY_FLAG : "";
-    if (result.area === "in") show("contact");
+    setServiceGroup(result.area);
+    if (result.area === "in") show("services");
     else if (result.area === "out") show("out");
   }
 
@@ -144,18 +154,34 @@
   });
 
   document.getElementById("contact-back").addEventListener("click", function () {
-    show(field("area").value === "out" ? "out" : "zip");
+    show(field("area").value === "out" ? "out" : "services");
   });
 
   document.getElementById("out-next").addEventListener("click", function () {
     show("contact");
   });
 
+  document.getElementById("services-next").addEventListener("click", function () {
+    var codes = checkedServices();
+    var err = document.getElementById("services-error");
+    if (!codes.length) {
+      if (err) err.textContent = "Choose at least one.";
+      var first = document.querySelector("#step-services input[type=checkbox]");
+      if (first) first.focus();
+      return;
+    }
+    if (err) err.textContent = "";
+    show("contact");
+  });
+
   function checkedServices() {
+    var selector = field("area").value === "out"
+      ? '#step-out input[name="services"]'
+      : '#step-services input[name="services"]';
     var codes = [];
-    var boxes = form.querySelectorAll('input[name="services"]');
+    var boxes = form.querySelectorAll(selector);
     for (var i = 0; i < boxes.length; i++) {
-      if (boxes[i].checked) codes.push(boxes[i].value);
+      if (boxes[i].checked && !boxes[i].disabled) codes.push(boxes[i].value);
     }
     field("service_list").value = codes.join(", ");
     return codes;
@@ -225,8 +251,8 @@
     var clean = CVPSQuote.pageName(field("name").value);
     var params = new URLSearchParams();
     if (clean) params.set("name", clean);
-    if (field("area").value === "out" && codes.length) params.set("services", codes.join(","));
-    var path = CVPSQuote.thanksPath(field("area").value, field("water").value);
+    if (codes.length) params.set("services", codes.join(","));
+    var path = CVPSQuote.thanksPath(field("area").value, field("water").value, codes.join(","));
     var qs = params.toString();
     return path + (qs ? "?" + qs : "");
   }
@@ -259,6 +285,10 @@
     }
     if (current === "out") {
       show("contact");
+      return;
+    }
+    if (current === "services") {
+      document.getElementById("services-next").click();
       return;
     }
     if (current !== "contact" || submitting) return;
