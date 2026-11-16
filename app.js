@@ -2,10 +2,10 @@ document.querySelector('.menu').addEventListener('click',function(){let open=thi
 const currentPath=location.pathname;document.querySelectorAll('header nav a').forEach(a=>{const h=a.getAttribute('href');if(h===currentPath||(h.length>1&&h.startsWith('/')&&currentPath.startsWith(h)))a.setAttribute('aria-current','page')});
 
 /* google-ads-start
- * The only place the Google Ads id and quiz conversion label are set.
+ * The Google tag (GTM-PVFHC29N plus AW-18485766053) is in each page head.
+ * This only records the quiz conversion. The page head loads the Google tag once.
  * send_to is GOOGLE_ADS_ID + "/" + QUIZ_CONVERSION_LABEL.
- * The base tag loads on every page. The conversion event fires only on
- * quiz thank-you pages, and only once per browser session.
+ * The conversion fires only on quiz thank-you pages, once per browser session.
  */
 var GOOGLE_ADS_ID = "AW-18485766053";
 var QUIZ_CONVERSION_LABEL = "ch54CI7HnLkdEKXP2e5E";
@@ -32,24 +32,15 @@ function markQuizConversion(win) {
 }
 
 function installGoogleAds(win, id, label) {
-  if (!win || !win.document || !win.document.head) return false;
+  if (!win || !win.document || !win.document.body) return false;
   if (!isGoogleAdsConfigured(id, label)) return false;
   if (win.__cvpsAds) return false;
   win.__cvpsAds = true;
-  win.dataLayer = win.dataLayer || [];
-  win.gtag = win.gtag || function () { win.dataLayer.push(arguments); };
-  win.gtag("js", new Date());
-  win.gtag("config", id);
-  var body = win.document.body;
-  var sendTo = id + "/" + label;
-  if (body && body.getAttribute("data-quiz-conversion") === "true" && !quizConversionSeen(win)) {
-    win.gtag("event", "conversion", { send_to: sendTo });
-    markQuizConversion(win);
-  }
-  var script = win.document.createElement("script");
-  script.async = true;
-  script.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(id);
-  win.document.head.appendChild(script);
+  if (win.document.body.getAttribute("data-quiz-conversion") !== "true") return true;
+  if (quizConversionSeen(win)) return true;
+  if (typeof win.gtag !== "function") return false;
+  win.gtag("event", "conversion", { send_to: id + "/" + label });
+  markQuizConversion(win);
   return true;
 }
 
