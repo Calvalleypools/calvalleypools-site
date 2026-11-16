@@ -1,0 +1,228 @@
+/* Quiz and thank-you pages only. Existing pages do not load this file. */
+.quiz-page,
+.quiz-thanks {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 36px 20px 28px;
+}
+.quiz-page h1,
+.quiz-thanks h1 {
+  font-size: clamp(32px, 8vw, 46px);
+  letter-spacing: -0.6px;
+  text-transform: uppercase;
+}
+.quiz-page .intro {
+  max-width: none;
+  margin: 16px 0 0;
+  font-size: 17px;
+}
+.quiz-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 22px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.quiz-trust li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.quiz-trust li::before {
+  content: "\2713";
+  color: var(--teal);
+}
+.quiz-kicker {
+  margin: 0 0 8px;
+  color: var(--teal);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.quiz-page form h2 {
+  font-size: clamp(26px, 6vw, 34px);
+  letter-spacing: -0.6px;
+  text-transform: uppercase;
+}
+.quiz-step[hidden] { display: none !important; }
+.quiz-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.quiz-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+.quiz-choice-green { background: #14602a; color: #fff; }
+.quiz-choice-green:hover { background: #0f4c21; }
+.quiz-choice-cloudy { background: #e4eaec; color: var(--ink); }
+.quiz-choice-cloudy:hover { background: #d5dee2; }
+.quiz-choice-clear { background: #165b85; color: #fff; }
+.quiz-choice-clear:hover { background: #114867; }
+.quiz-choice[aria-pressed="true"] {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+.quiz-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex: none;
+}
+.quiz-choice-green .quiz-dot { background: #b7e38a; }
+.quiz-choice-cloudy .quiz-dot { background: #8b989e; }
+.quiz-choice-clear .quiz-dot { background: #9fd4f5; }
+.quiz-reply {
+  margin: 14px 0 0;
+  color: var(--teal);
+  font-style: italic;
+  font-weight: 700;
+}
+.quiz-reply:empty { display: none; }
+.quiz-help { margin: 10px 0 0; font-size: 13px; }
+.quiz-error {
+  min-height: 0;
+  margin: 8px 0 0;
+  color: #9b1c1c;
+  font-size: 14px;
+  font-weight: 700;
+}
+.quiz-error:empty { display: none; }
+.quiz-east {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #d5dfda;
+}
+.quiz-east h3 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+.quiz-secondary {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  margin-top: 10px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 4px;
+  background: #e4e9eb;
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+.quiz-secondary:hover { background: #d5dee2; }
+.quiz-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0 0 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--teal);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.quiz-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0;
+}
+.quiz-checks label,
+.quiz-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.quiz-checks label {
+  padding: 12px;
+  border: 1px solid #d5dfda;
+  border-radius: 6px;
+}
+.quiz-consent { margin-top: 16px; }
+.quiz-page input[type="checkbox"] {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  margin: 1px 0 0;
+  flex: none;
+  accent-color: #165b85;
+}
+.quiz-page input[type="text"],
+.quiz-page input[type="tel"] { font-size: 16px; }
+.quiz-note {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 400;
+}
+.quiz-note a,
+.quiz-phone a,
+.quiz-noscript a,
+.quiz-fallback a {
+  font-weight: 700;
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.quiz-page.is-started h1 {
+  font-size: 22px;
+  margin: 0 0 14px;
+}
+.quiz-page.is-started .intro,
+.quiz-page.is-started .quiz-trust { display: none; }
+.quiz-phone,
+.quiz-noscript,
+.quiz-fallback {
+  margin: 22px 0 0;
+  font-size: 15px;
+}
+.quiz-thanks p { font-size: 18px; max-width: 36rem; }
+.quiz-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+/* The site's sticky call bar covers the last controls on a phone and its
+   "Get a quote" link leaves this quiz. The header, footer, and the line
+   under the form already show 661-747-9184. */
+body:has(.quiz-page) .mobile-cta,
+body:has(.quiz-thanks) .mobile-cta { display: none; }
+@media (max-width: 760px) {
+  .quiz-page,
+  .quiz-thanks { padding-top: 28px; }
+  body:has(.quiz-page) footer,
+  body:has(.quiz-thanks) footer { padding-bottom: 25px; }
+}

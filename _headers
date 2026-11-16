@@ -1,0 +1,9 @@
+# Thank-you pages stay out of search. /quote is public.
+/thanks-in-*
+  X-Robots-Tag: noindex, nofollow
+
+/thanks-out*
+  X-Robots-Tag: noindex, nofollow
+
+/thanks-services*
+  X-Robots-Tag: noindex, nofollow

@@ -1,0 +1,5 @@
+# Publish directory and build command stay in the Netlify UI
+# (repo root, no build). This file only sets the functions folder.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

@@ -1,5 +1,10 @@
 User-agent: *
 Allow: /
 Disallow: /thank-you/
+Disallow: /thanks-in-green/
+Disallow: /thanks-in-cloudy/
+Disallow: /thanks-in-clear/
+Disallow: /thanks-out/
+Disallow: /thanks-services/
 
 Sitemap: https://calvalleypools.com/sitemap.xml
