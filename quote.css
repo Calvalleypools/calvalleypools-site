@@ -215,9 +215,8 @@
   white-space: nowrap;
   border: 0;
 }
-/* The site's sticky call bar covers the last controls on a phone and its
-   "Get a quote" link leaves this quiz. The header, footer, and the line
-   under the form already show 661-747-9184. */
+/* The site's sticky call bar covers the last controls on a phone.
+   The header, footer, and the line under the form already show 661-747-9184. */
 body:has(.quiz-page) .mobile-cta,
 body:has(.quiz-thanks) .mobile-cta { display: none; }
 @media (max-width: 760px) {

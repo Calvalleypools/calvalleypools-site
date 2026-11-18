@@ -97,11 +97,26 @@ test("quiz pages are noindex and not linked from the site", function () {
   });
 });
 
-test("existing homepage copy is unchanged aside from files we meant to add", function () {
+test("homepage hero has a quiz button and a text button", function () {
   var home = read("index.html");
-  assert.match(home, /href="\/quote\/">Get a quote/);
-  assert.match(home, /href="\/contact\/">Get a free quote/);
+  assert.match(home, /<div class="actions"><a class="button" href="\/quote\/">Get a quote<\/a><a class="button secondary" href="sms:\+16617479184">Text us<\/a><\/div>/);
+  assert.equal(/Get a free quote/.test(home), false);
+  assert.equal(/<a class="plain" href="sms:\+16617479184">Text us<\/a>/.test(home), false);
   assert.match(home, /661-747-9184/);
   assert.match(home, /Pool Service in Bakersfield/);
   assert.equal(home.includes("google-ads"), false);
+  assert.equal(/661-748|748-0859|16617480859/.test(home), false);
+  assert.equal(/licensed/i.test(home), false);
+});
+
+test("quote calls to action point at the quiz", function () {
+  htmlFiles.forEach(function (file) {
+    var html = fs.readFileSync(file, "utf8");
+    var rel = path.relative(root, file);
+    assert.equal(/Get a free quote/.test(html), false, rel);
+    assert.equal(/href="\/contact\/[^"]*"[^>]*>[^<]*quote/i.test(html), false, rel);
+    assert.equal(/661-748|748-0859|16617480859/.test(html), false, rel);
+    assert.match(html, /<div class="mobile-cta"><a href="tel:\+16617479184">Call now<\/a><a href="\/quote\/">Get a quote (?:↗|&#8599;)<\/a><\/div>/, rel);
+    assert.match(html, /<a class="button small" href="\/quote\/">Get a quote<\/a>/);
+  });
 });
